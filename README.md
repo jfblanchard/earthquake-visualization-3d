@@ -1,63 +1,74 @@
 # 3D Earth Earthquake Visualization
 
-An interactive 3D visualization of global earthquake data, built with Python and Three.js. This application provides a stunning visual representation of seismic activity across the globe, allowing users to explore and understand earthquake patterns through time.
+Interactive 3D visualization of global earthquake data using Python, Three.js, and Streamlit. This application creates an immersive visual experience for exploring seismic activity patterns across the globe.
 
-## Features
+## 🌟 Features
 
-- Interactive 3D Earth visualization
-- Real-time earthquake data rendering
-- Year-based filtering of earthquake events
-- Magnitude-based filtering
-- Responsive design with smooth controls
-- Color-coded earthquake indicators based on magnitude
-- Dynamic statistics display
+- **Interactive 3D Earth**: Fully rotatable and zoomable globe visualization
+- **Real-time Data Rendering**: Smooth visualization of earthquake events
+- **Time-based Filtering**: Filter earthquakes by year
+- **Magnitude Filtering**: Focus on specific earthquake magnitudes
+- **Dynamic Statistics**: Real-time statistics updates
+- **Visual Indicators**: Color-coded earthquakes based on magnitude
+- **Responsive Design**: Adapts to different screen sizes
 
-## Installation
+## 🚀 Quick Start
 
-1. Clone the repository:
-```bash
-git clone https://github.com/jfblanchard/earthquake-visualization-3d.git
-cd earthquake-visualization-3d
+1. **Clone the Repository**
+   ```bash
+   git clone [your-repository-url]
+   cd earthquake-visualization-3d
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Prepare Data**
+   - Place your earthquake data CSV file in the project directory
+   - Required columns: Date, Latitude, Longitude, Magnitude
+
+4. **Run the Application**
+   ```bash
+   streamlit run main.py
+   ```
+
+5. **Access the Visualization**
+   - Open your browser
+   - Navigate to http://localhost:5000
+
+## 🎮 Usage Guide
+
+### Sidebar Controls
+- **Year Selection**: Choose specific years to visualize
+- **Magnitude Range**: Filter earthquakes by magnitude
+- **Statistics Panel**: View real-time data statistics
+
+### Visualization Controls
+- **Rotate**: Click and drag
+- **Zoom**: Scroll wheel
+- **Reset View**: Double click
+
+## 📊 Data Format
+
+The `earthquake_database.csv` file should contain:
+```csv
+Date,Latitude,Longitude,Magnitude
+2020-01-01,35.7,-117.5,4.2
 ```
 
-2. Install the required Python packages:
-```bash
-pip install streamlit pandas numpy pydeck
-```
+## 🛠 Technical Stack
 
-3. Place your earthquake data CSV file in the project directory (should contain Date, Latitude, Longitude, and Magnitude columns)
+- **Frontend**: Three.js for 3D rendering
+- **Backend**: Python with Streamlit
+- **Data Processing**: Pandas, NumPy
+- **Visualization**: PyDeck, Three.js
 
-## Usage
+## 📝 Contributing
 
-1. Run the Streamlit application:
-```bash
-streamlit run main.py
-```
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-2. Open your web browser and navigate to the provided URL (default: http://localhost:5000)
+## 📄 License
 
-3. Use the sidebar controls to:
-   - Select specific years
-   - Filter earthquakes by magnitude range
-   - View statistics about the displayed data
-
-## Dependencies
-
-- Python 3.x
-- Streamlit
-- Pandas
-- NumPy
-- PyDeck
-- Three.js (loaded via CDN)
-
-## Data Format
-
-The application expects a CSV file named `earthquake_database.csv` with the following columns:
-- Date: Date of the earthquake
-- Latitude: Latitude coordinates
-- Longitude: Longitude coordinates
-- Magnitude: Earthquake magnitude
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
