@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Earth Visualization</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // Initialize scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Create a separate scene for stars
+        const starsScene = new THREE.Scene();
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsMaterial = new THREE.PointsMaterial({
+            color: 0xFFFFFF,
+            size: 0.1,
+            sizeAttenuation: false
+        });
+        
+        const starsVertices = [];
+        for(let i = 0; i < 2000; i++) {
+            const x = THREE.MathUtils.randFloatSpread(2000);
+            const y = THREE.MathUtils.randFloatSpread(2000);
+            const z = THREE.MathUtils.randFloatSpread(2000);
+            starsVertices.push(x, y, z);
+        }
+        
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+        const starField = new THREE.Points(starsGeometry, starsMaterial);
+        starsScene.add(starField);
+
+        // Create Earth
+        const earthGeometry = new THREE.SphereGeometry(5, 64, 64);
+        const textureLoader = new THREE.TextureLoader();
+        // Add error handling for texture loading
+        const earthTexture = textureLoader.load('{{ earth_texture_base64 }}');
+        const earthMaterial = new THREE.MeshPhongMaterial({
+            map: earthTexture,
+            bumpScale: 0.01,
+            specular: new THREE.Color(0x111111),
+            shininess: 1,
+            specularMap: null
+        });
+        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+        scene.add(earth);
+
+        // Add ambient light (increased for better base visibility)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        scene.add(ambientLight);
+
+        // Add main directional light (sun-like)
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        directionalLight.position.set(10, 5, 10);
+        scene.add(directionalLight);
+
+        // Add a subtle rim light for atmosphere
+        const rimLight = new THREE.DirectionalLight(0x0077ff, 0.4);
+        rimLight.position.set(-10, 0, 0);
+        scene.add(rimLight);
+
+        // Add a gentle fill light
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.25);
+        fillLight.position.set(-5, -2, -5);
+        scene.add(fillLight);
+
+        // Add OrbitControls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+
+        camera.position.z = 15;
+
+        // Handle window resize
+        window.addEventListener('resize', onWindowResize, false);
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        let isDragging = false;
+        controls.addEventListener('start', () => isDragging = true);
+        controls.addEventListener('end', () => isDragging = false);
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update controls
+            controls.update();
+            
+            // First render stars (only move when dragging)
+            if (isDragging) {
+                renderer.autoClear = true;
+                renderer.render(starsScene, camera);
+            } else {
+                // When not dragging, keep stars static
+                const currentRotation = camera.rotation.clone();
+                const currentPosition = camera.position.clone();
+                camera.rotation.set(0, 0, 0);
+                camera.position.set(0, 0, 15);
+                renderer.autoClear = true;
+                renderer.render(starsScene, camera);
+                camera.rotation.copy(currentRotation);
+                camera.position.copy(currentPosition);
+            }
+            
+            // Then render the main scene with Earth
+            renderer.autoClear = false;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        let lastCameraState = null;
+        
+        // Create a function to update earthquake visualization
+        function updateEarthquakes(data) {
+            // Store complete camera and controls state
+            if (camera && controls) {
+                lastCameraState = {
+                    position: camera.position.clone(),
+                    rotation: camera.rotation.clone(),
+                    quaternion: camera.quaternion.clone(),
+                    zoom: camera.zoom,
+                    controlsTarget: controls.target.clone(),
+                    autoRotate: controls.autoRotate,
+                    autoRotateSpeed: controls.autoRotateSpeed
+                };
+            }
+            
+            // Remove existing earthquakes
+            const existingEarthquakes = scene.getObjectByName('earthquakes');
+            if (existingEarthquakes) {
+                scene.remove(existingEarthquakes);
+                existingEarthquakes.traverse((child) => {
+                    if (child.geometry) child.geometry.dispose();
+                    if (child.material) child.material.dispose();
+                });
+            }
+
+            const earthquakes = new THREE.Group();
+            earthquakes.name = 'earthquakes';
+            
+            // Restore complete camera and controls state
+            if (lastCameraState) {
+                camera.position.copy(lastCameraState.position);
+                camera.rotation.copy(lastCameraState.rotation);
+                camera.quaternion.copy(lastCameraState.quaternion);
+                camera.zoom = lastCameraState.zoom;
+                controls.target.copy(lastCameraState.controlsTarget);
+                camera.updateProjectionMatrix();
+                controls.update();
+            }
+            
+            data.forEach(quake => {
+                const height = Math.max(0.05, Math.min(0.5, 0.005 * Math.pow(10, 1.5 * (quake.magnitude - 5.5))));
+                const phi = (90 - quake.latitude) * (Math.PI / 180);
+                const theta = (quake.longitude + 180) * (Math.PI / 180);
+                
+                const x = -5 * Math.sin(phi) * Math.cos(theta);
+                const y = 5 * Math.cos(phi);
+                const z = 5 * Math.sin(phi) * Math.sin(theta);
+                
+                const geometry = new THREE.CylinderGeometry(0.05, 0.05, height, 8);
+                
+                const t = Math.max(0, Math.min(1, (quake.magnitude - 5.5) / 2));
+                const color = new THREE.Color(t, 0, 1 - t);
+                
+                const material = new THREE.MeshPhongMaterial({
+                    color: color,
+                    emissive: color.clone().multiplyScalar(0.5),
+                    emissiveIntensity: 0.5,
+                    shininess: 30
+                });
+                
+                const cylinder = new THREE.Mesh(geometry, material);
+                cylinder.position.set(x, y, z);
+                
+                const surfaceNormal = new THREE.Vector3(x, y, z).normalize();
+                cylinder.position.add(surfaceNormal.multiplyScalar(height / 2));
+                
+                const position = new THREE.Vector3(x, y, z);
+                const up = position.clone().normalize();
+                const axis = new THREE.Vector3(0, 1, 0);
+                const quaternion = new THREE.Quaternion();
+                quaternion.setFromUnitVectors(axis, up);
+                cylinder.setRotationFromQuaternion(quaternion);
+                
+                earthquakes.add(cylinder);
+            });
+            
+            scene.add(earthquakes);
+        }
+
+        // Initial earthquake data load
+        const earthquakeData = {{ earthquake_data|tojson }};
+        updateEarthquakes(earthquakeData);
+
+        // Setup StreamLit communication
+        const streamLitComponent = window.parent.document.querySelector('iframe[title="earth_viz.html"]');
+        if (streamLitComponent) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'srcdoc') {
+                        const srcdoc = streamLitComponent.getAttribute('srcdoc');
+                        const match = srcdoc.match(/earthquakeData = (\[.*?\]);/s);
+                        if (match) {
+                            const newData = JSON.parse(match[1]);
+                            updateEarthquakes(newData);
+                        }
+                    }
+                });
+            });
+            observer.observe(streamLitComponent, { attributes: true });
+        }
+    </script>
+</body>
+</html>

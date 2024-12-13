@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Earth with Earthquakes</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+<div id="info">Earth with Earthquakes - Click and drag to rotate</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+    // Set up scene, camera, and renderer
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Create Earth
+    const earthRadius = 2;
+    const geometry = new THREE.SphereGeometry(earthRadius, 32, 32);
+    const texture = new THREE.TextureLoader().load('earth_atmos_2048.jpg');
+    const material = new THREE.MeshPhongMaterial({
+        map: texture,
+        bumpScale: 0.05,
+    });
+    const earth = new THREE.Mesh(geometry, material);
+    scene.add(earth);
+
+    // Create Equator using tube geometry
+    const curve = new THREE.EllipseCurve(
+        0, 0,
+        earthRadius + 0.01, earthRadius + 0.01,
+        0, 2 * Math.PI,
+        false,
+        0
+    );
+    const points = curve.getPoints(64);
+    const equatorGeometry = new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3(
+            points.map(p => new THREE.Vector3(p.x, 0, p.y))
+        ),
+        64,
+        0.01,
+        8,
+        false
+    );
+    const equatorMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const equator = new THREE.Mesh(equatorGeometry, equatorMaterial);
+    earth.add(equator);
+
+    // Function to convert lat/lon to 3D position
+    function latLonToVector3(lat, lon, radius) {
+        const phi = (90 - lat) * (Math.PI / 180);
+        const theta = (lon + 180) * (Math.PI / 180);
+
+        return new THREE.Vector3(
+            -radius * Math.sin(phi) * Math.cos(theta),
+            radius * Math.cos(phi),
+            radius * Math.sin(phi) * Math.sin(theta)
+        );
+    }
+
+    // Function to add earthquake marker
+    function addEarthquakeMarker(lat, lon, magnitude) {
+        const position = latLonToVector3(lat, lon, earthRadius);
+        const height = magnitude * 0.1; // Scale magnitude to visible height
+
+        // Create cylinder geometry
+        const markerGeometry = new THREE.CylinderGeometry(0.02, 0.02, height, 8);
+        const markerMaterial = new THREE.MeshBasicMaterial({
+            color: magnitude > 6 ? 0xff0000 : magnitude > 4 ? 0xffff00 : 0x00ff00
+        });
+
+        const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+
+        // Position the marker
+        marker.position.copy(position);
+
+        // Orient the marker to point outward from the center
+        marker.lookAt(position.multiplyScalar(2));
+        marker.rotateX(Math.PI / 2);
+
+        // Move the marker out by half its height
+        const direction = position.normalize();
+        marker.position.copy(direction.multiplyScalar(earthRadius + height/2));
+
+        earth.add(marker);
+        return marker;
+    }
+
+    // Sample earthquake data
+    const sampleEarthquakes = [
+        { lat: 35.6895, lon: 139.6917, magnitude: 6.8 },  // Tokyo
+        { lat: 37.7749, lon: -122.4194, magnitude: 4.5 }, // San Francisco
+        { lat: -33.8688, lon: 151.2093, magnitude: 3.2 }, // Sydney
+        { lat: 51.5074, lon: -0.1278, magnitude: 2.8 }    // London
+    ];
+
+    // Add sample earthquakes
+    sampleEarthquakes.forEach(quake => {
+        addEarthquakeMarker(quake.lat, quake.lon, quake.magnitude);
+    });
+
+    // Add lights
+    const ambientLight = new THREE.AmbientLight(0x404040);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 3, 5);
+    scene.add(directionalLight);
+
+    // Position camera
+    camera.position.z = 5;
+
+    // Add OrbitControls
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 3;
+    controls.maxDistance = 10;
+
+    // Add stars
+    const starsGeometry = new THREE.BufferGeometry();
+    const starsMaterial = new THREE.PointsMaterial({color: 0xFFFFFF, size: 0.1});
+
+    const starsVertices = [];
+    for(let i = 0; i < 1000; i++) {
+        const x = THREE.MathUtils.randFloatSpread(100);
+        const y = THREE.MathUtils.randFloatSpread(100);
+        const z = THREE.MathUtils.randFloatSpread(100);
+        starsVertices.push(x, y, z);
+    }
+
+    starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+    const stars = new THREE.Points(starsGeometry, starsMaterial);
+    scene.add(stars);
+
+    // Animation
+    function animate() {
+        requestAnimationFrame(animate);
+        earth.rotation.y += 0.002;
+        controls.update();
+        renderer.render(scene, camera);
+    }
+
+    // Handle window resizing
+    window.addEventListener('resize', onWindowResize, false);
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    animate();
+</script>
+</body>
+</html>
