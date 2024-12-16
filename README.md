@@ -12,7 +12,7 @@ Interactive 3D visualization of global earthquake data using Python, Three.js, a
 - **Visual Indicators**: Color-coded earthquakes based on magnitude
 - **Responsive Design**: Adapts to different screen sizes
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **Clone the Repository**
    ```bash
@@ -38,7 +38,7 @@ Interactive 3D visualization of global earthquake data using Python, Three.js, a
    - Open your browser
    - Navigate to http://localhost:5000
 
-## 🎮 Usage Guide
+## Usage Guide
 
 ### Sidebar Controls
 - **Year Selection**: Choose specific years to visualize
@@ -50,7 +50,7 @@ Interactive 3D visualization of global earthquake data using Python, Three.js, a
 - **Zoom**: Scroll wheel
 - **Reset View**: Double click
 
-## 📊 Data Format
+## Data Format
 
 The `earthquake_database.csv` file should contain:
 ```csv
@@ -65,10 +65,7 @@ Date,Latitude,Longitude,Magnitude
 - **Data Processing**: Pandas, NumPy
 - **Visualization**: PyDeck, Three.js
 
-## 📝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License 
