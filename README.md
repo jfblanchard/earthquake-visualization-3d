@@ -2,6 +2,8 @@
 
 3D visualization of global earthquake data using Python, Three.js, and Streamlit.
 
+<img src="earthquakes_screenshot.png" width="50%" alt="Earthquake Visualization Screenshot">
+
 ## DataSet
 
 ### US Geological Survey
