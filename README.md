@@ -1,8 +1,23 @@
 # 3D Earth Earthquake Visualization
 
-Interactive 3D visualization of global earthquake data using Python, Three.js, and Streamlit. This application creates an immersive visual experience for exploring seismic activity patterns across the globe.
+3D visualization of global earthquake data using Python, Three.js, and Streamlit.
 
-## 🌟 Features
+## DataSet
+
+### US Geological Survey
+[Significant Earthquakes](https://www.kaggle.com/datasets/usgs/earthquake-database), 1965-2016
+Date, time, and location of all earthquakes with magnitude of 5.5 or higher
+
+Last Updated: 8 years ago (Version 1)
+About this Dataset
+Context
+
+The National Earthquake Information Center (NEIC) determines the location and size of all significant earthquakes that occur worldwide and disseminates this information immediately to national and international agencies, scientists, critical facilities, and the general public. The NEIC compiles and provides to scientists and to the public an extensive seismic database that serves as a foundation for scientific research through the operation of modern digital national and global seismograph networks and cooperative international agreements. The NEIC is the national data center and archive for earthquake information.
+Content
+
+This dataset includes a record of the date, time, location, depth, magnitude, and source of every earthquake with a reported magnitude 5.5 or higher since 1965.
+
+## Features
 
 - **Interactive 3D Earth**: Fully rotatable and zoomable globe visualization
 - **Real-time Data Rendering**: Smooth visualization of earthquake events
@@ -25,16 +40,12 @@ Interactive 3D visualization of global earthquake data using Python, Three.js, a
    pip install -r requirements.txt
    ```
 
-3. **Prepare Data**
-   - Place your earthquake data CSV file in the project directory
-   - Required columns: Date, Latitude, Longitude, Magnitude
-
-4. **Run the Application**
+3. **Run the Application**
    ```bash
    streamlit run main.py
    ```
 
-5. **Access the Visualization**
+4. **Access the Visualization**
    - Open your browser
    - Navigate to http://localhost:5000
 
@@ -50,15 +61,7 @@ Interactive 3D visualization of global earthquake data using Python, Three.js, a
 - **Zoom**: Scroll wheel
 - **Reset View**: Double click
 
-## Data Format
-
-The `earthquake_database.csv` file should contain:
-```csv
-Date,Latitude,Longitude,Magnitude
-2020-01-01,35.7,-117.5,4.2
-```
-
-## 🛠 Technical Stack
+## Technical Stack
 
 - **Frontend**: Three.js for 3D rendering
 - **Backend**: Python with Streamlit
@@ -66,6 +69,9 @@ Date,Latitude,Longitude,Magnitude
 - **Visualization**: PyDeck, Three.js
 
 
+
+
+
 ## 📄 License
 
-This project is licensed under the MIT License 
+MIT License 
