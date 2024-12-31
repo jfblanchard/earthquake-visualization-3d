@@ -12,4 +12,4 @@ secondaryBackgroundColor = "#31333F"
 textColor = "#fafafa"
 
 [browser]
-gatherUsageStats = false
+gatherUsageStats = true
